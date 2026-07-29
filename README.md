@@ -68,7 +68,34 @@ Privacy comes first:
 
 🚧 Active Development
 
-This project is currently under development and new features are being added continuously.
+This repo now contains a working scaffold of the full architecture:
+
+- **Frontend** (`src/`): Vite + React + TypeScript + Tailwind, with a chat view, a live system
+  dashboard (CPU/RAM/disk/network/process charts via Recharts), a settings view for LLM provider
+  configuration, and a friendly/sarcastic/savage personality switcher. Framer Motion powers the UI
+  transitions. The frontend runs standalone in a browser with mock telemetry for UI development,
+  and talks to the real backend automatically when run inside Tauri.
+- **Backend** (`src-tauri/`): Rust + Tauri 2. Includes a real telemetry collector (CPU, RAM, disk,
+  network, battery, top processes via `sysinfo` and `starship-battery`), a SQLite-backed memory
+  store (`rusqlite`) for settings/history, a unified LLM router supporting OpenAI, Mistral, Gemini,
+  and Grok (the first three share an OpenAI-compatible chat-completions dialect; Gemini uses
+  Google's `generateContent` API), and a tool-execution engine wired to real OS commands
+  (empty recycle bin, delete temp files, clear browser cache, analyze large folders, open task
+  manager/settings, kill/launch processes, restart/shutdown/sleep).
+
+Not yet implemented (tracked as follow-up work): SMART disk health, Windows-specific WMI/Event Log
+integration, startup app analysis, streaming token-by-token responses, voice I/O, OS-keychain-backed
+API key encryption (keys are currently stored locally in SQLite, unencrypted), and the plugin
+marketplace / multi-PC features from the "Future Features" section below.
+
+### Running it
+
+```bash
+npm install
+npm run tauri dev   # full desktop app (requires Rust toolchain + platform WebView deps)
+# or, for frontend-only UI iteration with mock data:
+npm run dev
+```
 
 ## Vision
 
