@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import PersonalitySelector from "@/components/PersonalitySelector";
+import MessageContent from "@/components/MessageContent";
 import { sendChatMessage } from "@/lib/bridge";
 import { useAppStore } from "@/state/store";
 import type { ChatMessage } from "@/lib/types";
@@ -71,7 +72,7 @@ export default function ChatPanel() {
                     : "glass text-slate-200"
                 }`}
               >
-                {m.content}
+                {m.role === "user" ? m.content : <MessageContent content={m.content} />}
               </motion.div>
             ))}
           </AnimatePresence>

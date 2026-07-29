@@ -1,16 +1,16 @@
 use crate::llm::{route_chat, ChatTurn, LlmProvider};
-use crate::memory::Memory;
+use crate::memory::{Alert, Memory};
 use crate::personality::{build_system_prompt, Personality};
 use crate::telemetry::{Telemetry, TelemetryCollector};
 use crate::tools;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
-use std::sync::Mutex;
+use std::sync::{Arc, Mutex};
 use tauri::State;
 
 pub struct AppState {
-    pub telemetry: Mutex<TelemetryCollector>,
-    pub memory: Memory,
+    pub telemetry: Arc<Mutex<TelemetryCollector>>,
+    pub memory: Arc<Memory>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -121,4 +121,14 @@ pub fn load_provider_config(state: State<AppState>) -> Result<Option<ProviderCon
             .map_err(|e| e.to_string()),
         None => Ok(None),
     }
+}
+
+#[tauri::command]
+pub fn list_alerts(state: State<AppState>) -> Result<Vec<Alert>, String> {
+    state.memory.list_alerts(50).map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+pub fn acknowledge_alert(state: State<AppState>, id: i64) -> Result<(), String> {
+    state.memory.acknowledge_alert(id).map_err(|e| e.to_string())
 }

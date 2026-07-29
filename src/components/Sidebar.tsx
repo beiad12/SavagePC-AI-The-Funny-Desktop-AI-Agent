@@ -5,11 +5,13 @@ import { useAppStore } from "@/state/store";
 const NAV: { id: View; label: string; icon: string }[] = [
   { id: "chat", label: "Chat", icon: "💬" },
   { id: "dashboard", label: "Dashboard", icon: "📊" },
+  { id: "alerts", label: "Notifications", icon: "🔔" },
   { id: "settings", label: "Settings", icon: "⚙️" },
 ];
 
 export default function Sidebar({ view, onChange }: { view: View; onChange: (v: View) => void }) {
   const telemetry = useAppStore((s) => s.telemetry);
+  const unreadAlerts = useAppStore((s) => s.alerts.filter((a) => !a.acknowledged).length);
 
   return (
     <aside className="glass flex w-20 flex-col items-center gap-2 border-r border-white/5 py-4">
@@ -29,6 +31,11 @@ export default function Sidebar({ view, onChange }: { view: View; onChange: (v: 
             <motion.div layoutId="nav-highlight" className="absolute inset-0 rounded-xl bg-white/10" />
           )}
           <span className="relative">{item.icon}</span>
+          {item.id === "alerts" && unreadAlerts > 0 && (
+            <span className="absolute right-1 top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-savage-accent px-1 text-[9px] font-bold text-white">
+              {unreadAlerts > 9 ? "9+" : unreadAlerts}
+            </span>
+          )}
         </button>
       ))}
       <div className="mt-auto flex flex-col items-center gap-1 text-[10px] text-slate-500">

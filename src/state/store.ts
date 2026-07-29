@@ -1,5 +1,5 @@
 import { create } from "zustand";
-import type { ChatMessage, LlmProvider, Personality, ProviderConfig, Telemetry } from "@/lib/types";
+import type { Alert, ChatMessage, LlmProvider, Personality, ProviderConfig, Telemetry } from "@/lib/types";
 
 interface AppState {
   personality: Personality;
@@ -17,6 +17,9 @@ interface AppState {
   messages: ChatMessage[];
   addMessage: (m: ChatMessage) => void;
   setMessages: (m: ChatMessage[]) => void;
+
+  alerts: Alert[];
+  setAlerts: (a: Alert[]) => void;
 }
 
 const DEFAULT_MODELS: Record<LlmProvider, string> = {
@@ -57,6 +60,9 @@ export const useAppStore = create<AppState>((set, get) => ({
   ],
   addMessage: (m) => set((s) => ({ messages: [...s.messages, m] })),
   setMessages: (m) => set({ messages: m }),
+
+  alerts: [],
+  setAlerts: (a) => set({ alerts: a }),
 }));
 
 export const DEFAULT_MODELS_MAP = DEFAULT_MODELS;

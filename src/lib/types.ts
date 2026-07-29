@@ -61,3 +61,11 @@ export interface ToolDefinition {
   category: string;
   dangerous: boolean;
 }
+
+export interface Alert {
+  id: number;
+  severity: "warning" | "critical" | string;
+  message: string;
+  created_at: number;
+  acknowledged: boolean;
+}

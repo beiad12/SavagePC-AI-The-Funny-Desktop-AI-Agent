@@ -1,5 +1,5 @@
 import { invoke } from "@tauri-apps/api/core";
-import type { ChatMessage, ProviderConfig, Telemetry } from "./types";
+import type { Alert, ChatMessage, ProviderConfig, Telemetry } from "./types";
 
 const isTauri = typeof window !== "undefined" && "__TAURI_INTERNALS__" in window;
 
@@ -68,4 +68,14 @@ export async function saveProviderConfig(config: ProviderConfig): Promise<void> 
 export async function loadProviderConfig(): Promise<ProviderConfig | null> {
   if (!isTauri) return null;
   return invoke<ProviderConfig | null>("load_provider_config");
+}
+
+export async function listAlerts(): Promise<Alert[]> {
+  if (!isTauri) return [];
+  return invoke<Alert[]>("list_alerts");
+}
+
+export async function acknowledgeAlert(id: number): Promise<void> {
+  if (!isTauri) return;
+  await invoke("acknowledge_alert", { id });
 }
