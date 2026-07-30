@@ -85,6 +85,55 @@ pub fn list_tools() -> Vec<ToolDefinition> {
     ]
 }
 
+/// OpenAI-style function-calling schemas for every tool, so an LLM can actually invoke
+/// them instead of just describing what it would do. Gemini's function-declaration
+/// format is compatible enough with this subset to reuse directly.
+pub fn tool_schemas() -> Vec<serde_json::Value> {
+    list_tools()
+        .into_iter()
+        .map(|t| {
+            let parameters = match t.name {
+                "kill_process" => serde_json::json!({
+                    "type": "object",
+                    "properties": {
+                        "process_name": {
+                            "type": "string",
+                            "description": "Exact process name to terminate, e.g. chrome.exe or Discord.exe"
+                        }
+                    },
+                    "required": ["process_name"]
+                }),
+                "launch_application" => serde_json::json!({
+                    "type": "object",
+                    "properties": {
+                        "path": { "type": "string", "description": "Path or command to launch" }
+                    },
+                    "required": ["path"]
+                }),
+                _ => serde_json::json!({ "type": "object", "properties": {} }),
+            };
+            let description = if t.dangerous {
+                format!(
+                    "{} Destructive action — only call this after the user has explicitly confirmed \
+                     in the conversation (a plain 'yes'/'go ahead'/'واخا' etc. to your own confirmation \
+                     question counts).",
+                    t.description
+                )
+            } else {
+                t.description.to_string()
+            };
+            serde_json::json!({
+                "type": "function",
+                "function": {
+                    "name": t.name,
+                    "description": description,
+                    "parameters": parameters,
+                }
+            })
+        })
+        .collect()
+}
+
 pub fn run_tool(name: &str, args: &HashMap<String, String>) -> Result<String> {
     match name {
         "empty_recycle_bin" => maintenance::empty_recycle_bin(),

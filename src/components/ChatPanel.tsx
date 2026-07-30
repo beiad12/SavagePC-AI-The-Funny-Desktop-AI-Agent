@@ -75,6 +75,22 @@ export default function ChatPanel() {
                 }`}
               >
                 {m.role === "user" ? m.content : <MessageContent content={m.content} />}
+                {m.toolCalls && m.toolCalls.length > 0 && (
+                  <div className="mt-2 flex flex-col gap-1 border-t border-white/10 pt-2">
+                    {m.toolCalls.map((tc, i) => (
+                      <div key={i} className="flex items-start gap-1.5 text-[11px] text-slate-400">
+                        <span>🔧</span>
+                        <span>
+                          <span className="font-mono text-slate-300">{tc.name}</span>
+                          {Object.keys(tc.args).length > 0 && (
+                            <span className="font-mono text-slate-500">({Object.values(tc.args).join(", ")})</span>
+                          )}
+                          {tc.result && <span className="text-slate-500"> — {tc.result}</span>}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </motion.div>
             ))}
           </AnimatePresence>

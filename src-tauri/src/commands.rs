@@ -1,4 +1,4 @@
-use crate::llm::{route_chat, ChatTurn, LlmProvider};
+use crate::llm::{route_chat, ChatEvent, LlmProvider};
 use crate::memory::{Alert, Memory};
 use crate::personality::{build_system_prompt, Personality};
 use crate::telemetry::{Telemetry, TelemetryCollector};
@@ -20,6 +20,15 @@ pub struct ChatMessage {
     pub content: String,
     #[serde(rename = "createdAt")]
     pub created_at: i64,
+    #[serde(rename = "toolCalls", skip_serializing_if = "Option::is_none")]
+    pub tool_calls: Option<Vec<ToolCallSummary>>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ToolCallSummary {
+    pub name: String,
+    pub args: HashMap<String, String>,
+    pub result: String,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -29,6 +38,8 @@ pub struct ProviderConfig {
     pub api_key: String,
     pub model: String,
 }
+
+const MAX_TOOL_ITERATIONS: u8 = 5;
 
 #[tauri::command]
 pub fn get_telemetry(state: State<AppState>) -> Result<Telemetry, String> {
@@ -52,6 +63,18 @@ pub fn run_tool(
     Ok(result)
 }
 
+fn parse_tool_arguments(raw: &str) -> HashMap<String, String> {
+    let Ok(serde_json::Value::Object(map)) = serde_json::from_str::<serde_json::Value>(raw) else {
+        return HashMap::new();
+    };
+    map.into_iter()
+        .map(|(k, v)| (k, v.as_str().map(str::to_string).unwrap_or_else(|| v.to_string())))
+        .collect()
+}
+
+/// Runs the model in a loop: the model can request tool calls, we actually execute
+/// them via `tools::run_tool`, feed the real result back, and let the model react —
+/// instead of the model just claiming in text that it did something.
 #[tauri::command]
 pub async fn send_chat_message(
     state: State<'_, AppState>,
@@ -74,30 +97,70 @@ pub async fn send_chat_message(
         _ => LlmProvider::Openai,
     };
 
-    let turns: Vec<ChatTurn> = history
+    let mut events: Vec<ChatEvent> = history
         .iter()
         .filter(|m| m.role == "user" || m.role == "assistant")
-        .map(|m| ChatTurn {
-            role: m.role.clone(),
-            content: m.content.clone(),
+        .map(|m| {
+            if m.role == "user" {
+                ChatEvent::User(m.content.clone())
+            } else {
+                ChatEvent::Assistant(m.content.clone())
+            }
         })
         .collect();
 
-    let reply = route_chat(
-        llm_provider,
-        &system_prompt,
-        &turns,
-        &provider.api_key,
-        &provider.model,
-    )
-    .await
-    .map_err(|e| e.to_string())?;
+    let tool_schemas = tools::tool_schemas();
+    let mut executed: Vec<ToolCallSummary> = Vec::new();
+
+    for _ in 0..MAX_TOOL_ITERATIONS {
+        let outcome = route_chat(
+            llm_provider,
+            &system_prompt,
+            &events,
+            &tool_schemas,
+            &provider.api_key,
+            &provider.model,
+        )
+        .await
+        .map_err(|e| e.to_string())?;
+
+        if outcome.tool_calls.is_empty() {
+            let content = outcome.message.unwrap_or_default();
+            return Ok(ChatMessage {
+                id: uuid::Uuid::new_v4().to_string(),
+                role: "assistant".to_string(),
+                content,
+                created_at: chrono::Utc::now().timestamp_millis(),
+                tool_calls: if executed.is_empty() { None } else { Some(executed) },
+            });
+        }
+
+        for call in outcome.tool_calls {
+            let args = parse_tool_arguments(&call.arguments);
+            let result = tools::run_tool(&call.name, &args).unwrap_or_else(|e| format!("Error: {e}"));
+            let _ = state.memory.log_maintenance(&call.name, &result);
+
+            events.push(ChatEvent::ToolCall {
+                id: call.id.clone(),
+                name: call.name.clone(),
+                arguments: call.arguments.clone(),
+            });
+            events.push(ChatEvent::ToolResult {
+                id: call.id,
+                name: call.name.clone(),
+                content: result.clone(),
+            });
+            executed.push(ToolCallSummary { name: call.name, args, result });
+        }
+    }
 
     Ok(ChatMessage {
         id: uuid::Uuid::new_v4().to_string(),
         role: "assistant".to_string(),
-        content: reply,
+        content: "I ran out of steps chaining tool calls — but check above, I probably did what you asked."
+            .to_string(),
         created_at: chrono::Utc::now().timestamp_millis(),
+        tool_calls: if executed.is_empty() { None } else { Some(executed) },
     })
 }
 
