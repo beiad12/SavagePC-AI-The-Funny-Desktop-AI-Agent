@@ -1,5 +1,5 @@
 use super::openai::openai_compatible_chat;
-use super::{ChatTurn, LlmClient};
+use super::{ChatEvent, ChatOutcome, LlmClient};
 use anyhow::Result;
 
 pub struct MistralClient;
@@ -9,16 +9,18 @@ impl LlmClient for MistralClient {
     async fn chat(
         &self,
         system_prompt: &str,
-        history: &[ChatTurn],
+        history: &[ChatEvent],
+        tools: &[serde_json::Value],
         api_key: &str,
         model: &str,
-    ) -> Result<String> {
+    ) -> Result<ChatOutcome> {
         openai_compatible_chat(
             "https://api.mistral.ai/v1/chat/completions",
             api_key,
             model,
             system_prompt,
             history,
+            tools,
         )
         .await
     }

@@ -97,6 +97,28 @@ npm run tauri dev   # full desktop app (requires Rust toolchain + platform WebVi
 npm run dev
 ```
 
+### Building a Windows installer
+
+The project builds natively on Windows with:
+
+```bash
+npm install
+npm run tauri build   # produces an NSIS setup.exe under src-tauri/target/release/bundle/nsis/
+```
+
+It can also be cross-compiled from Linux for smoke-testing (experimental — WebView2 and Windows
+APIs are only truly exercised on real Windows):
+
+```bash
+rustup target add x86_64-pc-windows-gnu
+sudo apt install mingw-w64 nsis
+npm run tauri build -- --target x86_64-pc-windows-gnu --bundles nsis
+```
+
+`src-tauri/.cargo/config.toml` points that target at the mingw-w64 linker. Note the app's Rust
+library crate only builds as `staticlib`/`rlib` (no `cdylib`) — GNU `ld`'s PE export-ordinal limit
+is otherwise exceeded when cross-linking Tauri's dependency tree into a DLL.
+
 ## Vision
 
 Build the world's most entertaining and useful desktop AI assistant—one that feels like a real friend living on your computer while helping you maintain, optimize, and understand your system.# SavagePC-AI-The-Funny-Desktop-AI-Agent

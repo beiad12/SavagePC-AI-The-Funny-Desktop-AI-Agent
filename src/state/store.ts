@@ -1,9 +1,13 @@
 import { create } from "zustand";
-import type { ChatMessage, LlmProvider, Personality, ProviderConfig, Telemetry } from "@/lib/types";
+import type { Alert, ChatMessage, LlmProvider, Personality, ProviderConfig, Telemetry } from "@/lib/types";
+import { type LanguageCode, translate } from "@/lib/i18n";
 
 interface AppState {
   personality: Personality;
   setPersonality: (p: Personality) => void;
+
+  language: LanguageCode;
+  setLanguage: (l: LanguageCode) => void;
 
   theme: "dark" | "light";
   toggleTheme: () => void;
@@ -17,6 +21,9 @@ interface AppState {
   messages: ChatMessage[];
   addMessage: (m: ChatMessage) => void;
   setMessages: (m: ChatMessage[]) => void;
+
+  alerts: Alert[];
+  setAlerts: (a: Alert[]) => void;
 }
 
 const DEFAULT_MODELS: Record<LlmProvider, string> = {
@@ -29,6 +36,9 @@ const DEFAULT_MODELS: Record<LlmProvider, string> = {
 export const useAppStore = create<AppState>((set, get) => ({
   personality: "sarcastic",
   setPersonality: (p) => set({ personality: p }),
+
+  language: "en",
+  setLanguage: (l) => set({ language: l }),
 
   theme: "dark",
   toggleTheme: () => set({ theme: get().theme === "dark" ? "light" : "dark" }),
@@ -51,12 +61,21 @@ export const useAppStore = create<AppState>((set, get) => ({
       id: "welcome",
       role: "assistant",
       content:
-        "I'm SavagePC AI. I watch your machine so you don't have to pretend you know what's eating your RAM. Ask me anything, or hit a maintenance button and let's see what disaster we're dealing with.",
+        "Hey, it's me — your PC. I'm not just watching your specs from the outside, I *am* the specs, so when I'm struggling you'll hear about it firsthand 😅 Ask me how I'm feeling, or hit a maintenance button and help me breathe.",
       createdAt: Date.now(),
     },
   ],
   addMessage: (m) => set((s) => ({ messages: [...s.messages, m] })),
   setMessages: (m) => set({ messages: m }),
+
+  alerts: [],
+  setAlerts: (a) => set({ alerts: a }),
 }));
 
 export const DEFAULT_MODELS_MAP = DEFAULT_MODELS;
+
+/** Subscribes to the current language so components re-render on change. */
+export function useT() {
+  const language = useAppStore((s) => s.language);
+  return (key: string) => translate(language, key);
+}

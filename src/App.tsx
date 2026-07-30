@@ -3,19 +3,36 @@ import Sidebar from "@/components/Sidebar";
 import Dashboard from "@/components/Dashboard";
 import ChatPanel from "@/components/ChatPanel";
 import SettingsPanel from "@/components/SettingsPanel";
-import { getTelemetry } from "@/lib/bridge";
+import NotificationsPanel from "@/components/NotificationsPanel";
+import { getTelemetry, listAlerts, loadLanguage } from "@/lib/bridge";
 import { useAppStore } from "@/state/store";
+import { LANGUAGES, type LanguageCode } from "@/lib/i18n";
 
-export type View = "chat" | "dashboard" | "settings";
+export type View = "chat" | "dashboard" | "settings" | "alerts";
 
 export default function App() {
   const [view, setView] = useState<View>("chat");
   const theme = useAppStore((s) => s.theme);
+  const language = useAppStore((s) => s.language);
+  const setLanguage = useAppStore((s) => s.setLanguage);
   const setTelemetry = useAppStore((s) => s.setTelemetry);
+  const setAlerts = useAppStore((s) => s.setAlerts);
 
   useEffect(() => {
     document.documentElement.classList.toggle("dark", theme === "dark");
   }, [theme]);
+
+  useEffect(() => {
+    loadLanguage().then((saved) => {
+      if (saved) setLanguage(saved as LanguageCode);
+    });
+  }, [setLanguage]);
+
+  useEffect(() => {
+    const meta = LANGUAGES.find((l) => l.code === language);
+    document.documentElement.lang = language;
+    document.documentElement.dir = meta?.rtl ? "rtl" : "ltr";
+  }, [language]);
 
   useEffect(() => {
     let cancelled = false;
@@ -35,6 +52,24 @@ export default function App() {
     };
   }, [setTelemetry]);
 
+  useEffect(() => {
+    let cancelled = false;
+    const poll = async () => {
+      try {
+        const a = await listAlerts();
+        if (!cancelled) setAlerts(a);
+      } catch (err) {
+        console.error("alerts poll failed", err);
+      }
+    };
+    poll();
+    const id = setInterval(poll, 10000);
+    return () => {
+      cancelled = true;
+      clearInterval(id);
+    };
+  }, [setAlerts]);
+
   return (
     <div className="flex h-screen w-screen overflow-hidden bg-savage-bg text-slate-100">
       <Sidebar view={view} onChange={setView} />
@@ -42,6 +77,7 @@ export default function App() {
         {view === "chat" && <ChatPanel />}
         {view === "dashboard" && <Dashboard />}
         {view === "settings" && <SettingsPanel />}
+        {view === "alerts" && <NotificationsPanel />}
       </main>
     </div>
   );
