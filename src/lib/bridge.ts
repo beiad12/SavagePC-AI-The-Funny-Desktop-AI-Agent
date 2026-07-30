@@ -81,6 +81,16 @@ export async function loadLanguage(): Promise<string | null> {
   return invoke<string | null>("load_language");
 }
 
+export async function savePersonality(personality: string): Promise<void> {
+  if (!isTauri) return;
+  await invoke("save_personality", { personality });
+}
+
+export async function loadPersonality(): Promise<string | null> {
+  if (!isTauri) return null;
+  return invoke<string | null>("load_personality");
+}
+
 export async function listAlerts(): Promise<Alert[]> {
   if (!isTauri) return [];
   return invoke<Alert[]>("list_alerts");

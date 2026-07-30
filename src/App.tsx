@@ -4,9 +4,10 @@ import Dashboard from "@/components/Dashboard";
 import ChatPanel from "@/components/ChatPanel";
 import SettingsPanel from "@/components/SettingsPanel";
 import NotificationsPanel from "@/components/NotificationsPanel";
-import { getTelemetry, listAlerts, loadLanguage } from "@/lib/bridge";
+import { getTelemetry, listAlerts, loadLanguage, loadPersonality } from "@/lib/bridge";
 import { useAppStore } from "@/state/store";
 import { LANGUAGES, type LanguageCode } from "@/lib/i18n";
+import type { Personality } from "@/lib/types";
 
 export type View = "chat" | "dashboard" | "settings" | "alerts";
 
@@ -15,6 +16,7 @@ export default function App() {
   const theme = useAppStore((s) => s.theme);
   const language = useAppStore((s) => s.language);
   const setLanguage = useAppStore((s) => s.setLanguage);
+  const setPersonality = useAppStore((s) => s.setPersonality);
   const setTelemetry = useAppStore((s) => s.setTelemetry);
   const setAlerts = useAppStore((s) => s.setAlerts);
 
@@ -26,7 +28,10 @@ export default function App() {
     loadLanguage().then((saved) => {
       if (saved) setLanguage(saved as LanguageCode);
     });
-  }, [setLanguage]);
+    loadPersonality().then((saved) => {
+      if (saved) setPersonality(saved as Personality);
+    });
+  }, [setLanguage, setPersonality]);
 
   useEffect(() => {
     const meta = LANGUAGES.find((l) => l.code === language);

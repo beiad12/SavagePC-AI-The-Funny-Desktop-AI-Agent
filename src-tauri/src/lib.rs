@@ -34,6 +34,8 @@ pub fn run() {
             commands::load_provider_config,
             commands::save_language,
             commands::load_language,
+            commands::save_personality,
+            commands::load_personality,
             commands::list_alerts,
             commands::acknowledge_alert,
         ])

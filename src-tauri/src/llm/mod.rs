@@ -40,6 +40,17 @@ pub enum LlmProvider {
     Grok,
 }
 
+impl LlmProvider {
+    pub fn from_str(s: &str) -> Self {
+        match s {
+            "mistral" => LlmProvider::Mistral,
+            "gemini" => LlmProvider::Gemini,
+            "grok" => LlmProvider::Grok,
+            _ => LlmProvider::Openai,
+        }
+    }
+}
+
 #[async_trait::async_trait]
 pub trait LlmClient {
     async fn chat(
@@ -77,4 +88,18 @@ pub async fn route_chat(
     }
     let client = client_for(provider);
     client.chat(system_prompt, history, tools, api_key, model).await
+}
+
+/// Single-shot text generation, no tools, no multi-turn history — used for short
+/// AI-generated proactive notifications rather than a chat exchange.
+pub async fn generate_short_text(
+    provider: LlmProvider,
+    system_prompt: &str,
+    user_message: &str,
+    api_key: &str,
+    model: &str,
+) -> Result<String> {
+    let events = vec![ChatEvent::User(user_message.to_string())];
+    let outcome = route_chat(provider, system_prompt, &events, &[], api_key, model).await?;
+    Ok(outcome.message.unwrap_or_default())
 }

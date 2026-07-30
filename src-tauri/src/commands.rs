@@ -90,12 +90,7 @@ pub async fn send_chat_message(
     let telemetry_json = serde_json::to_string_pretty(&telemetry).map_err(|e| e.to_string())?;
     let system_prompt = build_system_prompt(Personality::from_str(&personality), &telemetry_json, &language);
 
-    let llm_provider = match provider.provider.as_str() {
-        "mistral" => LlmProvider::Mistral,
-        "gemini" => LlmProvider::Gemini,
-        "grok" => LlmProvider::Grok,
-        _ => LlmProvider::Openai,
-    };
+    let llm_provider = LlmProvider::from_str(&provider.provider);
 
     let mut events: Vec<ChatEvent> = history
         .iter()
@@ -195,6 +190,16 @@ pub fn save_language(state: State<AppState>, language: String) -> Result<(), Str
 #[tauri::command]
 pub fn load_language(state: State<AppState>) -> Result<Option<String>, String> {
     state.memory.get_setting("language").map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+pub fn save_personality(state: State<AppState>, personality: String) -> Result<(), String> {
+    state.memory.set_setting("personality", &personality).map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+pub fn load_personality(state: State<AppState>) -> Result<Option<String>, String> {
+    state.memory.get_setting("personality").map_err(|e| e.to_string())
 }
 
 #[tauri::command]
