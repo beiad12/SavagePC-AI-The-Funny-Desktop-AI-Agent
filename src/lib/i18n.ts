@@ -26,7 +26,7 @@ const en: Dict = {
   "sidebar.cpu": "CPU",
   "sidebar.ram": "RAM",
 
-  "chat.placeholder": "Ask about your PC, or tell me to clean something…",
+  "chat.placeholder": "Ask me how I'm feeling, or tell me to fix something…",
   "chat.send": "Send",
   "chat.thinking": "thinking…",
   "chat.error": "Something broke talking to the LLM:",
@@ -87,7 +87,7 @@ const fr: Dict = {
   "sidebar.cpu": "CPU",
   "sidebar.ram": "RAM",
 
-  "chat.placeholder": "Demande-moi sur ton PC, ou dis-moi de nettoyer quelque chose…",
+  "chat.placeholder": "Demande-moi comment je me sens, ou dis-moi de réparer quelque chose…",
   "chat.send": "Envoyer",
   "chat.thinking": "réflexion…",
   "chat.error": "Un problème est survenu avec le LLM :",
@@ -148,7 +148,7 @@ const ar: Dict = {
   "sidebar.cpu": "المعالج",
   "sidebar.ram": "الذاكرة",
 
-  "chat.placeholder": "اسألني عن جهازك، أو قل لي أن أنظّف شيئًا…",
+  "chat.placeholder": "اسألني كيف حالي، أو قل لي أن أصلح شيئًا…",
   "chat.send": "إرسال",
   "chat.thinking": "أفكّر…",
   "chat.error": "حدث خطأ أثناء التواصل مع النموذج:",
@@ -208,7 +208,7 @@ const ary: Dict = {
   "sidebar.cpu": "المعالج",
   "sidebar.ram": "الرام",
 
-  "chat.placeholder": "سولني على البيسي ديالك، ولا قوليا نصاوب شي حاجة…",
+  "chat.placeholder": "سولني كيداير حالي، ولا قوليا نصاوب شي حاجة…",
   "chat.send": "صيفط",
   "chat.thinking": "كيخمم…",
   "chat.error": "وقع مشكل مع النموذج:",

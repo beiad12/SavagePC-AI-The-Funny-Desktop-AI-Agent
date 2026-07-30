@@ -61,7 +61,7 @@ export const useAppStore = create<AppState>((set, get) => ({
       id: "welcome",
       role: "assistant",
       content:
-        "I'm SavagePC AI. I watch your machine so you don't have to pretend you know what's eating your RAM. Ask me anything, or hit a maintenance button and let's see what disaster we're dealing with.",
+        "Hey, it's me — your PC. I'm not just watching your specs from the outside, I *am* the specs, so when I'm struggling you'll hear about it firsthand 😅 Ask me how I'm feeling, or hit a maintenance button and help me breathe.",
       createdAt: Date.now(),
     },
   ],

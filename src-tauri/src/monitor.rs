@@ -1,4 +1,5 @@
 use crate::memory::Memory;
+use crate::personality;
 use crate::telemetry::TelemetryCollector;
 use std::collections::HashMap;
 use std::sync::{Arc, Mutex};
@@ -29,6 +30,7 @@ pub fn spawn(app: AppHandle, telemetry: Arc<Mutex<TelemetryCollector>>, memory: 
                 let mut collector = telemetry.lock().unwrap();
                 collector.collect()
             };
+            let language = memory.get_setting("language").ok().flatten().unwrap_or_else(|| "en".to_string());
 
             let mut checks: Vec<Check> = Vec::new();
 
@@ -36,10 +38,7 @@ pub fn spawn(app: AppHandle, telemetry: Arc<Mutex<TelemetryCollector>>, memory: 
                 checks.push(Check {
                     key: "cpu_high",
                     severity: "warning",
-                    message: format!(
-                        "🔥 CPU is pinned at {:.0}%. Something's cooking.",
-                        snapshot.cpu_usage_percent
-                    ),
+                    message: personality::alert_cpu_high(&language, snapshot.cpu_usage_percent),
                 });
             }
 
@@ -47,9 +46,11 @@ pub fn spawn(app: AppHandle, telemetry: Arc<Mutex<TelemetryCollector>>, memory: 
                 checks.push(Check {
                     key: "ram_high",
                     severity: "warning",
-                    message: format!(
-                        "🧠 RAM at {:.0}% ({:.1}/{:.1} GB). Time to close some tabs.",
-                        snapshot.ram_percent, snapshot.ram_used_gb, snapshot.ram_total_gb
+                    message: personality::alert_ram_high(
+                        &language,
+                        snapshot.ram_percent,
+                        snapshot.ram_used_gb,
+                        snapshot.ram_total_gb,
                     ),
                 });
             }
@@ -59,10 +60,7 @@ pub fn spawn(app: AppHandle, telemetry: Arc<Mutex<TelemetryCollector>>, memory: 
                     checks.push(Check {
                         key: "disk_full",
                         severity: "critical",
-                        message: format!(
-                            "💾 {} is {:.0}% full ({:.1} GB free). Time to clean up.",
-                            disk.name, disk.used_percent, disk.free_gb
-                        ),
+                        message: personality::alert_disk_full(&language, &disk.name, disk.used_percent, disk.free_gb),
                     });
                 }
             }
@@ -72,7 +70,7 @@ pub fn spawn(app: AppHandle, telemetry: Arc<Mutex<TelemetryCollector>>, memory: 
                     checks.push(Check {
                         key: "battery_low",
                         severity: "warning",
-                        message: format!("🔋 Battery at {pct:.0}% and not charging. Plug in before it's too late."),
+                        message: personality::alert_battery_low(&language, pct),
                     });
                 }
             }
