@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { loadProviderConfig, saveProviderConfig } from "@/lib/bridge";
 import { useAppStore, useT } from "@/state/store";
 import type { LlmProvider } from "@/lib/types";
+import { MODEL_OPTIONS } from "@/lib/models";
 import LanguageSelector from "@/components/LanguageSelector";
 
 const PROVIDERS: { id: LlmProvider; label: string }[] = [
@@ -66,6 +67,46 @@ export default function SettingsPanel() {
         />
 
         <label className="mb-1 block text-xs text-slate-400">{t("settings.model")}</label>
+
+        <div className="mb-2">
+          <div className="mb-1 text-[10px] uppercase tracking-wide text-slate-500">{t("settings.modelLarge")}</div>
+          <div className="flex flex-wrap gap-1.5">
+            {MODEL_OPTIONS[provider.provider]
+              .filter((m) => m.tier === "large")
+              .map((m) => (
+                <button
+                  key={m.id}
+                  onClick={() => setProvider({ model: m.id })}
+                  className={`rounded-lg px-2.5 py-1 text-xs transition ${
+                    provider.model === m.id ? "bg-white/15 text-white" : "bg-white/5 text-slate-400 hover:bg-white/10"
+                  }`}
+                >
+                  {m.label}
+                </button>
+              ))}
+          </div>
+        </div>
+
+        <div className="mb-3">
+          <div className="mb-1 text-[10px] uppercase tracking-wide text-slate-500">{t("settings.modelSmall")}</div>
+          <div className="flex flex-wrap gap-1.5">
+            {MODEL_OPTIONS[provider.provider]
+              .filter((m) => m.tier === "small")
+              .map((m) => (
+                <button
+                  key={m.id}
+                  onClick={() => setProvider({ model: m.id })}
+                  className={`rounded-lg px-2.5 py-1 text-xs transition ${
+                    provider.model === m.id ? "bg-white/15 text-white" : "bg-white/5 text-slate-400 hover:bg-white/10"
+                  }`}
+                >
+                  {m.label}
+                </button>
+              ))}
+          </div>
+        </div>
+
+        <label className="mb-1 block text-xs text-slate-500">{t("settings.customModel")}</label>
         <input
           value={provider.model}
           onChange={(e) => setProvider({ model: e.target.value })}

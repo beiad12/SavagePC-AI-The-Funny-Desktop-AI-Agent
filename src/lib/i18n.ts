@@ -67,6 +67,9 @@ const en: Dict = {
   "settings.aiProvider": "AI Provider",
   "settings.apiKey": "API Key",
   "settings.model": "Model",
+  "settings.modelLarge": "Large (smartest)",
+  "settings.modelSmall": "Small / Flash (fastest, cheapest)",
+  "settings.customModel": "Custom model ID",
   "settings.save": "Save",
   "settings.saved": "Saved ✓",
   "settings.privacyNote":
@@ -128,6 +131,9 @@ const fr: Dict = {
   "settings.aiProvider": "Fournisseur IA",
   "settings.apiKey": "Clé API",
   "settings.model": "Modèle",
+  "settings.modelLarge": "Large (le plus intelligent)",
+  "settings.modelSmall": "Petit / Flash (le plus rapide, le moins cher)",
+  "settings.customModel": "ID de modèle personnalisé",
   "settings.save": "Enregistrer",
   "settings.saved": "Enregistré ✓",
   "settings.privacyNote":
@@ -188,6 +194,9 @@ const ar: Dict = {
   "settings.aiProvider": "مزوّد الذكاء الاصطناعي",
   "settings.apiKey": "مفتاح API",
   "settings.model": "النموذج",
+  "settings.modelLarge": "كبير (الأذكى)",
+  "settings.modelSmall": "صغير / فلاش (الأسرع والأرخص)",
+  "settings.customModel": "معرّف نموذج مخصص",
   "settings.save": "حفظ",
   "settings.saved": "تم الحفظ ✓",
   "settings.privacyNote":
@@ -248,6 +257,9 @@ const ary: Dict = {
   "settings.aiProvider": "مزوّد الذكاء الاصطناعي",
   "settings.apiKey": "مفتاح API",
   "settings.model": "الموديل",
+  "settings.modelLarge": "كبير (الأذكى)",
+  "settings.modelSmall": "صغير / فلاش (الأسرع والأرخص)",
+  "settings.customModel": "موديل خاص، كتب الID ديالو",
   "settings.save": "سجل",
   "settings.saved": "تسجل ✓",
   "settings.privacyNote":
