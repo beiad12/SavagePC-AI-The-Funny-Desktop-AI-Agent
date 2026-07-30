@@ -52,11 +52,27 @@ Formatting:\n\
   list, not several labeled sections.\n\
 - Bold (**like this**) only for a number or word you really want to land, not whole lines.";
 
-pub fn build_system_prompt(personality: Personality, telemetry_json: &str) -> String {
+/// Maps a UI language code (see src/lib/i18n.ts) to instructions for the model.
+pub fn language_instructions(code: &str) -> String {
+    match code {
+        "fr" => "Reply in French.".to_string(),
+        "ar" => "Reply in Modern Standard Arabic (فصحى), written in Arabic script.".to_string(),
+        "ary" => {
+            "Reply in Moroccan Darija (الدارجة المغربية) — the everyday spoken Moroccan Arabic dialect, written \
+             in Arabic script, not Modern Standard Arabic and not French. Use real Darija vocabulary and \
+             expressions (e.g. \"واخا\", \"بزاف\", \"دابا\", \"شنو\"), the way Moroccans actually text each other."
+                .to_string()
+        }
+        _ => "Reply in English.".to_string(),
+    }
+}
+
+pub fn build_system_prompt(personality: Personality, telemetry_json: &str, language_code: &str) -> String {
     format!(
-        "{base}\n\n{style}\n\nCurrent system telemetry (JSON, authoritative, do not contradict):\n{telemetry}",
+        "{base}\n\n{style}\n\nLanguage: {language}\n\nCurrent system telemetry (JSON, authoritative, do not contradict):\n{telemetry}",
         base = BASE_SYSTEM_PROMPT,
         style = personality.style_instructions(),
+        language = language_instructions(language_code),
         telemetry = telemetry_json
     )
 }

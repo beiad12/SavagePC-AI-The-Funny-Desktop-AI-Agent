@@ -32,6 +32,8 @@ pub fn run() {
             commands::send_chat_message,
             commands::save_provider_config,
             commands::load_provider_config,
+            commands::save_language,
+            commands::load_language,
             commands::list_alerts,
             commands::acknowledge_alert,
         ])

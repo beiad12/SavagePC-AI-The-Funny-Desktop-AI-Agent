@@ -2,13 +2,13 @@ import { useEffect, useRef, useState } from "react";
 import { Area, AreaChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import StatCard from "@/components/StatCard";
 import { runTool } from "@/lib/bridge";
-import { useAppStore } from "@/state/store";
+import { useAppStore, useT } from "@/state/store";
 
 const MAINTENANCE_ACTIONS = [
-  { tool: "empty_recycle_bin", label: "Empty Recycle Bin", icon: "🗑️" },
-  { tool: "delete_temp_files", label: "Delete Temp Files", icon: "🧹" },
-  { tool: "clear_browser_cache", label: "Clear Browser Cache", icon: "🌐" },
-  { tool: "open_task_manager", label: "Open Task Manager", icon: "📋" },
+  { tool: "empty_recycle_bin", key: "tool.empty_recycle_bin", icon: "🗑️" },
+  { tool: "delete_temp_files", key: "tool.delete_temp_files", icon: "🧹" },
+  { tool: "clear_browser_cache", key: "tool.clear_browser_cache", icon: "🌐" },
+  { tool: "open_task_manager", key: "tool.open_task_manager", icon: "📋" },
 ];
 
 export default function Dashboard() {
@@ -17,6 +17,7 @@ export default function Dashboard() {
   const [actionResult, setActionResult] = useState<string | null>(null);
   const [busy, setBusy] = useState<string | null>(null);
   const lastTimestamp = useRef<number>(0);
+  const t = useT();
 
   useEffect(() => {
     if (!telemetry || telemetry.timestamp === lastTimestamp.current) return;
@@ -41,39 +42,43 @@ export default function Dashboard() {
   };
 
   if (!telemetry) {
-    return <div className="flex h-full items-center justify-center text-slate-400">Loading telemetry…</div>;
+    return <div className="flex h-full items-center justify-center text-slate-400">{t("dashboard.loading")}</div>;
   }
 
   const uptimeHours = Math.floor(telemetry.uptime_seconds / 3600);
 
   return (
     <div className="h-full overflow-y-auto p-6">
-      <h1 className="mb-4 text-xl font-semibold">System Dashboard</h1>
+      <h1 className="mb-4 text-xl font-semibold">{t("dashboard.title")}</h1>
 
       <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
         <StatCard
-          label="CPU"
+          label={t("dashboard.cpu")}
           value={`${Math.round(telemetry.cpu_usage_percent)}%`}
           sub={`${telemetry.cpu_name} · ${telemetry.cpu_cores} cores`}
           percent={telemetry.cpu_usage_percent}
           danger={telemetry.cpu_usage_percent > 85}
         />
         <StatCard
-          label="RAM"
+          label={t("dashboard.ram")}
           value={`${telemetry.ram_used_gb.toFixed(1)} / ${telemetry.ram_total_gb.toFixed(0)} GB`}
-          sub={`${Math.round(telemetry.ram_percent)}% used`}
+          sub={`${Math.round(telemetry.ram_percent)}% ${t("dashboard.usedOf")}`}
           percent={telemetry.ram_percent}
           danger={telemetry.ram_percent > 85}
         />
         <StatCard
-          label="Network"
+          label={t("dashboard.network")}
           value={`↓ ${(telemetry.network_rx_kbps / 1024).toFixed(1)} MB/s`}
           sub={`↑ ${(telemetry.network_tx_kbps / 1024).toFixed(1)} MB/s`}
         />
         <StatCard
-          label="Uptime"
+          label={t("dashboard.uptime")}
           value={`${uptimeHours}h`}
-          sub={telemetry.battery_percent !== null ? `Battery ${telemetry.battery_percent}%` : "Desktop / no battery"}
+          sub={
+            telemetry.battery_percent !== null
+              ? `${t("dashboard.battery")} ${telemetry.battery_percent}%`
+              : t("dashboard.desktop")
+          }
         />
       </div>
 
@@ -81,9 +86,9 @@ export default function Dashboard() {
         {telemetry.disks.map((disk) => (
           <StatCard
             key={disk.mount_point}
-            label={`Disk ${disk.name}`}
-            value={`${disk.free_gb.toFixed(0)} GB free`}
-            sub={`${disk.total_gb.toFixed(0)} GB total · ${disk.used_percent.toFixed(0)}% used`}
+            label={`${t("dashboard.disk")} ${disk.name}`}
+            value={`${disk.free_gb.toFixed(0)} GB ${t("dashboard.free")}`}
+            sub={`${disk.total_gb.toFixed(0)} GB ${t("dashboard.total")} · ${disk.used_percent.toFixed(0)}% ${t("dashboard.usedOf")}`}
             percent={disk.used_percent}
             danger={disk.used_percent > 90}
           />
@@ -91,7 +96,7 @@ export default function Dashboard() {
       </div>
 
       <div className="glass mt-4 rounded-2xl p-4">
-        <div className="mb-2 text-xs uppercase tracking-wide text-slate-400">CPU / RAM history</div>
+        <div className="mb-2 text-xs uppercase tracking-wide text-slate-400">{t("dashboard.history")}</div>
         <div className="h-40">
           <ResponsiveContainer width="100%" height="100%">
             <AreaChart data={history}>
@@ -120,7 +125,7 @@ export default function Dashboard() {
 
       <div className="mt-4 grid grid-cols-1 gap-4 lg:grid-cols-2">
         <div className="glass rounded-2xl p-4">
-          <div className="mb-2 text-xs uppercase tracking-wide text-slate-400">Top processes</div>
+          <div className="mb-2 text-xs uppercase tracking-wide text-slate-400">{t("dashboard.topProcesses")}</div>
           <ul className="space-y-1 text-sm">
             {telemetry.top_processes.map((p) => (
               <li key={p.pid} className="flex justify-between text-slate-300">
@@ -134,7 +139,7 @@ export default function Dashboard() {
         </div>
 
         <div className="glass rounded-2xl p-4">
-          <div className="mb-2 text-xs uppercase tracking-wide text-slate-400">One-click maintenance</div>
+          <div className="mb-2 text-xs uppercase tracking-wide text-slate-400">{t("dashboard.maintenance")}</div>
           <div className="grid grid-cols-2 gap-2">
             {MAINTENANCE_ACTIONS.map((action) => (
               <button
@@ -144,7 +149,7 @@ export default function Dashboard() {
                 className="flex items-center gap-2 rounded-xl bg-white/5 px-3 py-2 text-sm transition hover:bg-white/10 disabled:opacity-50"
               >
                 <span>{action.icon}</span>
-                <span>{busy === action.tool ? "Running…" : action.label}</span>
+                <span>{busy === action.tool ? t("dashboard.running") : t(action.key)}</span>
               </button>
             ))}
           </div>

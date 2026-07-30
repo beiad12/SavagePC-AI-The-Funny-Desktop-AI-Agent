@@ -1,17 +1,18 @@
 import { motion } from "framer-motion";
 import type { View } from "@/App";
-import { useAppStore } from "@/state/store";
+import { useAppStore, useT } from "@/state/store";
 
-const NAV: { id: View; label: string; icon: string }[] = [
-  { id: "chat", label: "Chat", icon: "💬" },
-  { id: "dashboard", label: "Dashboard", icon: "📊" },
-  { id: "alerts", label: "Notifications", icon: "🔔" },
-  { id: "settings", label: "Settings", icon: "⚙️" },
+const NAV: { id: View; key: string; icon: string }[] = [
+  { id: "chat", key: "nav.chat", icon: "💬" },
+  { id: "dashboard", key: "nav.dashboard", icon: "📊" },
+  { id: "alerts", key: "nav.alerts", icon: "🔔" },
+  { id: "settings", key: "nav.settings", icon: "⚙️" },
 ];
 
 export default function Sidebar({ view, onChange }: { view: View; onChange: (v: View) => void }) {
   const telemetry = useAppStore((s) => s.telemetry);
   const unreadAlerts = useAppStore((s) => s.alerts.filter((a) => !a.acknowledged).length);
+  const t = useT();
 
   return (
     <aside className="glass flex w-20 flex-col items-center gap-2 border-r border-white/5 py-4">
@@ -25,7 +26,7 @@ export default function Sidebar({ view, onChange }: { view: View; onChange: (v: 
           className={`relative flex h-12 w-12 flex-col items-center justify-center rounded-xl text-lg transition ${
             view === item.id ? "bg-white/10 text-white" : "text-slate-400 hover:bg-white/5 hover:text-slate-200"
           }`}
-          title={item.label}
+          title={t(item.key)}
         >
           {view === item.id && (
             <motion.div layoutId="nav-highlight" className="absolute inset-0 rounded-xl bg-white/10" />
@@ -42,10 +43,10 @@ export default function Sidebar({ view, onChange }: { view: View; onChange: (v: 
         {telemetry ? (
           <>
             <span className={telemetry.cpu_usage_percent > 85 ? "text-savage-accent" : "text-savage-good"}>
-              CPU {Math.round(telemetry.cpu_usage_percent)}%
+              {t("sidebar.cpu")} {Math.round(telemetry.cpu_usage_percent)}%
             </span>
             <span className={telemetry.ram_percent > 85 ? "text-savage-accent" : "text-slate-400"}>
-              RAM {Math.round(telemetry.ram_percent)}%
+              {t("sidebar.ram")} {Math.round(telemetry.ram_percent)}%
             </span>
           </>
         ) : (

@@ -1,15 +1,16 @@
 import type { Personality } from "@/lib/types";
-import { useAppStore } from "@/state/store";
+import { useAppStore, useT } from "@/state/store";
 
-const OPTIONS: { id: Personality; label: string; emoji: string }[] = [
-  { id: "friendly", label: "Friendly", emoji: "🙂" },
-  { id: "sarcastic", label: "Sarcastic", emoji: "😏" },
-  { id: "savage", label: "Savage 18+", emoji: "🔥" },
+const OPTIONS: { id: Personality; key: string; emoji: string }[] = [
+  { id: "friendly", key: "personality.friendly", emoji: "🙂" },
+  { id: "sarcastic", key: "personality.sarcastic", emoji: "😏" },
+  { id: "savage", key: "personality.savage", emoji: "🔥" },
 ];
 
 export default function PersonalitySelector() {
   const personality = useAppStore((s) => s.personality);
   const setPersonality = useAppStore((s) => s.setPersonality);
+  const t = useT();
 
   return (
     <div className="flex gap-1 rounded-full bg-white/5 p-1">
@@ -21,7 +22,7 @@ export default function PersonalitySelector() {
             personality === opt.id ? "bg-white/15 text-white" : "text-slate-400 hover:text-slate-200"
           }`}
         >
-          {opt.emoji} {opt.label}
+          {opt.emoji} {t(opt.key)}
         </button>
       ))}
     </div>

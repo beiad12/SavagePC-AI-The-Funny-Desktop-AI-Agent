@@ -1,5 +1,5 @@
 import { acknowledgeAlert } from "@/lib/bridge";
-import { useAppStore } from "@/state/store";
+import { useAppStore, useT } from "@/state/store";
 
 function timeAgo(unixSeconds: number) {
   const diff = Date.now() / 1000 - unixSeconds;
@@ -12,6 +12,7 @@ function timeAgo(unixSeconds: number) {
 export default function NotificationsPanel() {
   const alerts = useAppStore((s) => s.alerts);
   const setAlerts = useAppStore((s) => s.setAlerts);
+  const t = useT();
 
   const dismiss = async (id: number) => {
     setAlerts(alerts.map((a) => (a.id === id ? { ...a, acknowledged: true } : a)));
@@ -20,16 +21,11 @@ export default function NotificationsPanel() {
 
   return (
     <div className="h-full overflow-y-auto p-6">
-      <h1 className="mb-1 text-xl font-semibold">Notifications</h1>
-      <p className="mb-4 text-sm text-slate-500">
-        SavagePC AI keeps watching in the background, even when this window is closed — these are the things it
-        flagged.
-      </p>
+      <h1 className="mb-1 text-xl font-semibold">{t("notifications.title")}</h1>
+      <p className="mb-4 text-sm text-slate-500">{t("notifications.subtitle")}</p>
 
       {alerts.length === 0 && (
-        <div className="glass rounded-2xl p-6 text-center text-sm text-slate-400">
-          Nothing to report. Suspiciously quiet. 👀
-        </div>
+        <div className="glass rounded-2xl p-6 text-center text-sm text-slate-400">{t("notifications.empty")}</div>
       )}
 
       <div className="flex flex-col gap-2">
@@ -56,7 +52,7 @@ export default function NotificationsPanel() {
                 onClick={() => dismiss(a.id)}
                 className="shrink-0 rounded-lg bg-white/5 px-3 py-1.5 text-xs hover:bg-white/10"
               >
-                Dismiss
+                {t("notifications.dismiss")}
               </button>
             )}
           </div>
