@@ -1,4 +1,5 @@
 import type { Personality } from "@/lib/types";
+import { savePersonality } from "@/lib/bridge";
 import { useAppStore, useT } from "@/state/store";
 
 const OPTIONS: { id: Personality; key: string; emoji: string }[] = [
@@ -12,12 +13,17 @@ export default function PersonalitySelector() {
   const setPersonality = useAppStore((s) => s.setPersonality);
   const t = useT();
 
+  const choose = (id: Personality) => {
+    setPersonality(id);
+    savePersonality(id);
+  };
+
   return (
     <div className="flex gap-1 rounded-full bg-white/5 p-1">
       {OPTIONS.map((opt) => (
         <button
           key={opt.id}
-          onClick={() => setPersonality(opt.id)}
+          onClick={() => choose(opt.id)}
           className={`rounded-full px-3 py-1 text-xs font-medium transition ${
             personality === opt.id ? "bg-white/15 text-white" : "text-slate-400 hover:text-slate-200"
           }`}

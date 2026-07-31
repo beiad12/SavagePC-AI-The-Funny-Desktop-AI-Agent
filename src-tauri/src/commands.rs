@@ -6,7 +6,7 @@ use crate::tools;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::sync::{Arc, Mutex};
-use tauri::State;
+use tauri::{AppHandle, State};
 
 pub struct AppState {
     pub telemetry: Arc<Mutex<TelemetryCollector>>,
@@ -22,6 +22,8 @@ pub struct ChatMessage {
     pub created_at: i64,
     #[serde(rename = "toolCalls", skip_serializing_if = "Option::is_none")]
     pub tool_calls: Option<Vec<ToolCallSummary>>,
+    #[serde(rename = "pendingConfirmation", skip_serializing_if = "Option::is_none")]
+    pub pending_confirmation: Option<PendingConfirmation>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -29,6 +31,15 @@ pub struct ToolCallSummary {
     pub name: String,
     pub args: HashMap<String, String>,
     pub result: String,
+}
+
+/// A dangerous tool call the model requested but that the app is holding for a real
+/// user click before running — see the confirm/cancel card rendered in the chat UI.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct PendingConfirmation {
+    pub name: String,
+    pub args: HashMap<String, String>,
+    pub description: String,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -54,11 +65,12 @@ pub fn list_tools() -> Vec<tools::ToolDefinition> {
 
 #[tauri::command]
 pub fn run_tool(
+    app: AppHandle,
     state: State<AppState>,
     name: String,
     args: Option<HashMap<String, String>>,
 ) -> Result<String, String> {
-    let result = tools::run_tool(&name, &args.unwrap_or_default()).map_err(|e| e.to_string())?;
+    let result = tools::run_tool(&name, &args.unwrap_or_default(), &app).map_err(|e| e.to_string())?;
     let _ = state.memory.log_maintenance(&name, &result);
     Ok(result)
 }
@@ -77,6 +89,7 @@ fn parse_tool_arguments(raw: &str) -> HashMap<String, String> {
 /// instead of the model just claiming in text that it did something.
 #[tauri::command]
 pub async fn send_chat_message(
+    app: AppHandle,
     state: State<'_, AppState>,
     history: Vec<ChatMessage>,
     personality: String,
@@ -90,12 +103,7 @@ pub async fn send_chat_message(
     let telemetry_json = serde_json::to_string_pretty(&telemetry).map_err(|e| e.to_string())?;
     let system_prompt = build_system_prompt(Personality::from_str(&personality), &telemetry_json, &language);
 
-    let llm_provider = match provider.provider.as_str() {
-        "mistral" => LlmProvider::Mistral,
-        "gemini" => LlmProvider::Gemini,
-        "grok" => LlmProvider::Grok,
-        _ => LlmProvider::Openai,
-    };
+    let llm_provider = LlmProvider::from_str(&provider.provider);
 
     let mut events: Vec<ChatEvent> = history
         .iter()
@@ -132,12 +140,32 @@ pub async fn send_chat_message(
                 content,
                 created_at: chrono::Utc::now().timestamp_millis(),
                 tool_calls: if executed.is_empty() { None } else { Some(executed) },
+                pending_confirmation: None,
             });
         }
 
         for call in outcome.tool_calls {
             let args = parse_tool_arguments(&call.arguments);
-            let result = tools::run_tool(&call.name, &args).unwrap_or_else(|e| format!("Error: {e}"));
+
+            // Real gate: a dangerous call is never auto-executed. Hand it back to the
+            // UI, which shows a genuine confirm/cancel button; nothing runs until the
+            // user actually clicks it (see run_tool, called separately on confirm).
+            if tools::is_dangerous(&call.name) {
+                return Ok(ChatMessage {
+                    id: uuid::Uuid::new_v4().to_string(),
+                    role: "assistant".to_string(),
+                    content: String::new(),
+                    created_at: chrono::Utc::now().timestamp_millis(),
+                    tool_calls: if executed.is_empty() { None } else { Some(executed) },
+                    pending_confirmation: Some(PendingConfirmation {
+                        description: tools::description_for(&call.name),
+                        name: call.name,
+                        args,
+                    }),
+                });
+            }
+
+            let result = tools::run_tool(&call.name, &args, &app).unwrap_or_else(|e| format!("Error: {e}"));
             let _ = state.memory.log_maintenance(&call.name, &result);
 
             events.push(ChatEvent::ToolCall {
@@ -161,6 +189,7 @@ pub async fn send_chat_message(
             .to_string(),
         created_at: chrono::Utc::now().timestamp_millis(),
         tool_calls: if executed.is_empty() { None } else { Some(executed) },
+        pending_confirmation: None,
     })
 }
 
@@ -195,6 +224,16 @@ pub fn save_language(state: State<AppState>, language: String) -> Result<(), Str
 #[tauri::command]
 pub fn load_language(state: State<AppState>) -> Result<Option<String>, String> {
     state.memory.get_setting("language").map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+pub fn save_personality(state: State<AppState>, personality: String) -> Result<(), String> {
+    state.memory.set_setting("personality", &personality).map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+pub fn load_personality(state: State<AppState>) -> Result<Option<String>, String> {
+    state.memory.get_setting("personality").map_err(|e| e.to_string())
 }
 
 #[tauri::command]

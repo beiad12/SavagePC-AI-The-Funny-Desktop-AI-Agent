@@ -29,7 +29,11 @@ const en: Dict = {
   "chat.placeholder": "Ask me how I'm feeling, or tell me to fix something…",
   "chat.send": "Send",
   "chat.thinking": "thinking…",
+  "chat.scanning": "🔍 Scanning your disk…",
   "chat.error": "Something broke talking to the LLM:",
+  "chat.confirm": "Confirm",
+  "chat.cancel": "Cancel",
+  "chat.cancelled": "Cancelled — nothing was changed.",
 
   "personality.friendly": "Friendly",
   "personality.sarcastic": "Sarcastic",
@@ -79,6 +83,16 @@ const en: Dict = {
   "settings.dark": "dark",
   "settings.light": "light",
   "settings.mode": "mode",
+
+  "onboarding.title": "Hey, I'm SavagePC AI",
+  "onboarding.subtitle": "Let's get you set up — three quick steps.",
+  "onboarding.step1": "Choose your AI provider",
+  "onboarding.step2": "Add your API key",
+  "onboarding.step3": "Pick your vibe",
+  "onboarding.next": "Next",
+  "onboarding.back": "Back",
+  "onboarding.finish": "Get started",
+  "onboarding.skip": "Skip for now",
 };
 
 const fr: Dict = {
@@ -93,7 +107,11 @@ const fr: Dict = {
   "chat.placeholder": "Demande-moi comment je me sens, ou dis-moi de réparer quelque chose…",
   "chat.send": "Envoyer",
   "chat.thinking": "réflexion…",
+  "chat.scanning": "🔍 Analyse de votre disque…",
   "chat.error": "Un problème est survenu avec le LLM :",
+  "chat.confirm": "Confirmer",
+  "chat.cancel": "Annuler",
+  "chat.cancelled": "Annulé — rien n'a été modifié.",
 
   "personality.friendly": "Amical",
   "personality.sarcastic": "Sarcastique",
@@ -143,6 +161,16 @@ const fr: Dict = {
   "settings.dark": "sombre",
   "settings.light": "clair",
   "settings.mode": "",
+
+  "onboarding.title": "Salut, c'est SavagePC AI",
+  "onboarding.subtitle": "Configurons tout ça — trois étapes rapides.",
+  "onboarding.step1": "Choisis ton fournisseur IA",
+  "onboarding.step2": "Ajoute ta clé API",
+  "onboarding.step3": "Choisis ton style",
+  "onboarding.next": "Suivant",
+  "onboarding.back": "Retour",
+  "onboarding.finish": "Commencer",
+  "onboarding.skip": "Passer pour l'instant",
 };
 
 const ar: Dict = {
@@ -157,7 +185,11 @@ const ar: Dict = {
   "chat.placeholder": "اسألني كيف حالي، أو قل لي أن أصلح شيئًا…",
   "chat.send": "إرسال",
   "chat.thinking": "أفكّر…",
+  "chat.scanning": "🔍 جارٍ فحص القرص…",
   "chat.error": "حدث خطأ أثناء التواصل مع النموذج:",
+  "chat.confirm": "تأكيد",
+  "chat.cancel": "إلغاء",
+  "chat.cancelled": "تم الإلغاء — لم يتغيّر شيء.",
 
   "personality.friendly": "ودود",
   "personality.sarcastic": "ساخر",
@@ -206,6 +238,16 @@ const ar: Dict = {
   "settings.dark": "الداكن",
   "settings.light": "الفاتح",
   "settings.mode": "",
+
+  "onboarding.title": "مرحبًا، أنا SavagePC AI",
+  "onboarding.subtitle": "خلّينا نجهزو كلشي — ثلاث خطوات سريعة.",
+  "onboarding.step1": "اختر مزوّد الذكاء الاصطناعي",
+  "onboarding.step2": "أضف مفتاح API الخاص بك",
+  "onboarding.step3": "اختر أسلوبك",
+  "onboarding.next": "التالي",
+  "onboarding.back": "رجوع",
+  "onboarding.finish": "ابدأ",
+  "onboarding.skip": "تخطَّ الآن",
 };
 
 const ary: Dict = {
@@ -220,7 +262,11 @@ const ary: Dict = {
   "chat.placeholder": "سولني كيداير حالي، ولا قوليا نصاوب شي حاجة…",
   "chat.send": "صيفط",
   "chat.thinking": "كيخمم…",
+  "chat.scanning": "🔍 كنقلب فالديسك ديالك…",
   "chat.error": "وقع مشكل مع النموذج:",
+  "chat.confirm": "واخا",
+  "chat.cancel": "لالا",
+  "chat.cancelled": "تلغى — مابدلنا والو.",
 
   "personality.friendly": "لطيف",
   "personality.sarcastic": "ساخر",
@@ -269,6 +315,16 @@ const ary: Dict = {
   "settings.dark": "المظلم",
   "settings.light": "الفاتح",
   "settings.mode": "",
+
+  "onboarding.title": "أهلا، أنا SavagePC AI",
+  "onboarding.subtitle": "يالله نجهزو كلشي — تلت خطوات دغيا.",
+  "onboarding.step1": "اختار مزوّد الذكاء الاصطناعي",
+  "onboarding.step2": "زيد مفتاح API ديالك",
+  "onboarding.step3": "اختار الستايل ديالك",
+  "onboarding.next": "التالي",
+  "onboarding.back": "رجوع",
+  "onboarding.finish": "يالله نبداو",
+  "onboarding.skip": "خصني نتخطى دابا",
 };
 
 export const TRANSLATIONS: Record<LanguageCode, Dict> = { en, fr, ar, ary };

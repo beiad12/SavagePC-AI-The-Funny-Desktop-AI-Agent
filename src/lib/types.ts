@@ -47,12 +47,19 @@ export interface ChatMessage {
   content: string;
   createdAt: number;
   toolCalls?: ToolCallRecord[];
+  pendingConfirmation?: PendingConfirmation;
 }
 
 export interface ToolCallRecord {
   name: string;
   args: Record<string, unknown>;
   result?: string;
+}
+
+export interface PendingConfirmation {
+  name: string;
+  args: Record<string, string>;
+  description: string;
 }
 
 export interface ToolDefinition {

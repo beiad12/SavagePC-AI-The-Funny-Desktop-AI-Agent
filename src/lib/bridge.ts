@@ -1,7 +1,7 @@
 import { invoke } from "@tauri-apps/api/core";
 import type { Alert, ChatMessage, ProviderConfig, Telemetry } from "./types";
 
-const isTauri = typeof window !== "undefined" && "__TAURI_INTERNALS__" in window;
+export const isTauri = typeof window !== "undefined" && "__TAURI_INTERNALS__" in window;
 
 function mockTelemetry(): Telemetry {
   return {
@@ -81,6 +81,16 @@ export async function loadLanguage(): Promise<string | null> {
   return invoke<string | null>("load_language");
 }
 
+export async function savePersonality(personality: string): Promise<void> {
+  if (!isTauri) return;
+  await invoke("save_personality", { personality });
+}
+
+export async function loadPersonality(): Promise<string | null> {
+  if (!isTauri) return null;
+  return invoke<string | null>("load_personality");
+}
+
 export async function listAlerts(): Promise<Alert[]> {
   if (!isTauri) return [];
   return invoke<Alert[]>("list_alerts");
@@ -89,4 +99,24 @@ export async function listAlerts(): Promise<Alert[]> {
 export async function acknowledgeAlert(id: number): Promise<void> {
   if (!isTauri) return;
   await invoke("acknowledge_alert", { id });
+}
+
+export interface ScanProgress {
+  scanned: number;
+  current_path: string;
+}
+
+/** Subscribes to backend scan_progress/scan_complete events. No-op outside Tauri. */
+export async function onScanEvents(
+  onProgress: (p: ScanProgress) => void,
+  onComplete: () => void,
+): Promise<() => void> {
+  if (!isTauri) return () => {};
+  const { listen } = await import("@tauri-apps/api/event");
+  const unlistenProgress = await listen<ScanProgress>("scan_progress", (e) => onProgress(e.payload));
+  const unlistenComplete = await listen("scan_complete", () => onComplete());
+  return () => {
+    unlistenProgress();
+    unlistenComplete();
+  };
 }
