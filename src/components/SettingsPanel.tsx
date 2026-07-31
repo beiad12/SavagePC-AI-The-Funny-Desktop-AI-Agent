@@ -1,16 +1,9 @@
 import { useEffect, useState } from "react";
 import { loadProviderConfig, saveProviderConfig } from "@/lib/bridge";
 import { useAppStore, useT } from "@/state/store";
-import type { LlmProvider } from "@/lib/types";
 import { MODEL_OPTIONS } from "@/lib/models";
+import { PROVIDERS } from "@/lib/providers";
 import LanguageSelector from "@/components/LanguageSelector";
-
-const PROVIDERS: { id: LlmProvider; label: string }[] = [
-  { id: "openai", label: "OpenAI" },
-  { id: "mistral", label: "Mistral AI" },
-  { id: "gemini", label: "Google Gemini" },
-  { id: "grok", label: "xAI Grok" },
-];
 
 export default function SettingsPanel() {
   const provider = useAppStore((s) => s.provider);

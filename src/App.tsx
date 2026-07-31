@@ -4,7 +4,8 @@ import Dashboard from "@/components/Dashboard";
 import ChatPanel from "@/components/ChatPanel";
 import SettingsPanel from "@/components/SettingsPanel";
 import NotificationsPanel from "@/components/NotificationsPanel";
-import { getTelemetry, listAlerts, loadLanguage, loadPersonality } from "@/lib/bridge";
+import OnboardingWizard from "@/components/OnboardingWizard";
+import { getTelemetry, isTauri, listAlerts, loadLanguage, loadPersonality, loadProviderConfig } from "@/lib/bridge";
 import { useAppStore } from "@/state/store";
 import { LANGUAGES, type LanguageCode } from "@/lib/i18n";
 import type { Personality } from "@/lib/types";
@@ -13,6 +14,7 @@ export type View = "chat" | "dashboard" | "settings" | "alerts";
 
 export default function App() {
   const [view, setView] = useState<View>("chat");
+  const [needsOnboarding, setNeedsOnboarding] = useState<boolean | null>(null);
   const theme = useAppStore((s) => s.theme);
   const language = useAppStore((s) => s.language);
   const setLanguage = useAppStore((s) => s.setLanguage);
@@ -30,6 +32,13 @@ export default function App() {
     });
     loadPersonality().then((saved) => {
       if (saved) setPersonality(saved as Personality);
+    });
+    if (!isTauri) {
+      setNeedsOnboarding(false);
+      return;
+    }
+    loadProviderConfig().then((cfg) => {
+      setNeedsOnboarding(!cfg || !cfg.apiKey);
     });
   }, [setLanguage, setPersonality]);
 
@@ -74,6 +83,18 @@ export default function App() {
       clearInterval(id);
     };
   }, [setAlerts]);
+
+  if (needsOnboarding === null) {
+    return <div className="h-screen w-screen bg-savage-bg" />;
+  }
+
+  if (needsOnboarding) {
+    return (
+      <div className="h-screen w-screen bg-savage-bg text-slate-100">
+        <OnboardingWizard onComplete={() => setNeedsOnboarding(false)} />
+      </div>
+    );
+  }
 
   return (
     <div className="flex h-screen w-screen overflow-hidden bg-savage-bg text-slate-100">

@@ -22,6 +22,8 @@ pub struct ChatMessage {
     pub created_at: i64,
     #[serde(rename = "toolCalls", skip_serializing_if = "Option::is_none")]
     pub tool_calls: Option<Vec<ToolCallSummary>>,
+    #[serde(rename = "pendingConfirmation", skip_serializing_if = "Option::is_none")]
+    pub pending_confirmation: Option<PendingConfirmation>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -29,6 +31,15 @@ pub struct ToolCallSummary {
     pub name: String,
     pub args: HashMap<String, String>,
     pub result: String,
+}
+
+/// A dangerous tool call the model requested but that the app is holding for a real
+/// user click before running — see the confirm/cancel card rendered in the chat UI.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct PendingConfirmation {
+    pub name: String,
+    pub args: HashMap<String, String>,
+    pub description: String,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -129,11 +140,31 @@ pub async fn send_chat_message(
                 content,
                 created_at: chrono::Utc::now().timestamp_millis(),
                 tool_calls: if executed.is_empty() { None } else { Some(executed) },
+                pending_confirmation: None,
             });
         }
 
         for call in outcome.tool_calls {
             let args = parse_tool_arguments(&call.arguments);
+
+            // Real gate: a dangerous call is never auto-executed. Hand it back to the
+            // UI, which shows a genuine confirm/cancel button; nothing runs until the
+            // user actually clicks it (see run_tool, called separately on confirm).
+            if tools::is_dangerous(&call.name) {
+                return Ok(ChatMessage {
+                    id: uuid::Uuid::new_v4().to_string(),
+                    role: "assistant".to_string(),
+                    content: String::new(),
+                    created_at: chrono::Utc::now().timestamp_millis(),
+                    tool_calls: if executed.is_empty() { None } else { Some(executed) },
+                    pending_confirmation: Some(PendingConfirmation {
+                        description: tools::description_for(&call.name),
+                        name: call.name,
+                        args,
+                    }),
+                });
+            }
+
             let result = tools::run_tool(&call.name, &args, &app).unwrap_or_else(|e| format!("Error: {e}"));
             let _ = state.memory.log_maintenance(&call.name, &result);
 
@@ -158,6 +189,7 @@ pub async fn send_chat_message(
             .to_string(),
         created_at: chrono::Utc::now().timestamp_millis(),
         tool_calls: if executed.is_empty() { None } else { Some(executed) },
+        pending_confirmation: None,
     })
 }
 

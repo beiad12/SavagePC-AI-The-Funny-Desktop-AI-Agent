@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import PersonalitySelector from "@/components/PersonalitySelector";
 import MessageContent from "@/components/MessageContent";
+import ConfirmationCard from "@/components/ConfirmationCard";
 import { onScanEvents, sendChatMessage, type ScanProgress } from "@/lib/bridge";
 import { useAppStore, useT } from "@/state/store";
 import type { ChatMessage } from "@/lib/types";
@@ -88,7 +89,12 @@ export default function ChatPanel() {
                     : "glass text-slate-200"
                 }`}
               >
-                {m.role === "user" ? m.content : <MessageContent content={m.content} />}
+                {m.role === "user" ? (
+                  m.content
+                ) : m.content ? (
+                  <MessageContent content={m.content} />
+                ) : null}
+                {m.pendingConfirmation && <ConfirmationCard pending={m.pendingConfirmation} />}
                 {m.toolCalls && m.toolCalls.length > 0 && (
                   <div className="mt-2 flex flex-col gap-1 border-t border-white/10 pt-2">
                     {m.toolCalls.map((tc, i) => (

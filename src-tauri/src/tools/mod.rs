@@ -140,9 +140,9 @@ pub fn tool_schemas() -> Vec<serde_json::Value> {
             };
             let description = if t.dangerous {
                 format!(
-                    "{} Destructive action — only call this after the user has explicitly confirmed \
-                     in the conversation (a plain 'yes'/'go ahead'/'واخا' etc. to your own confirmation \
-                     question counts).",
+                    "{} Destructive action — the app itself shows the user a confirm/cancel button before this \
+                     actually runs, so call it directly when it's the right thing to do; you do not need to ask \
+                     permission in chat text first.",
                     t.description
                 )
             } else {
@@ -158,6 +158,18 @@ pub fn tool_schemas() -> Vec<serde_json::Value> {
             })
         })
         .collect()
+}
+
+pub fn is_dangerous(name: &str) -> bool {
+    list_tools().iter().any(|t| t.name == name && t.dangerous)
+}
+
+pub fn description_for(name: &str) -> String {
+    list_tools()
+        .into_iter()
+        .find(|t| t.name == name)
+        .map(|t| t.description.to_string())
+        .unwrap_or_default()
 }
 
 pub fn run_tool(name: &str, args: &HashMap<String, String>, app: &AppHandle) -> Result<String> {
