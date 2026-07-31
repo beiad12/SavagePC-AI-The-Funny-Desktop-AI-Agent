@@ -29,6 +29,7 @@ const en: Dict = {
   "chat.placeholder": "Ask me how I'm feeling, or tell me to fix something…",
   "chat.send": "Send",
   "chat.thinking": "thinking…",
+  "chat.scanning": "🔍 Scanning your disk…",
   "chat.error": "Something broke talking to the LLM:",
 
   "personality.friendly": "Friendly",
@@ -93,6 +94,7 @@ const fr: Dict = {
   "chat.placeholder": "Demande-moi comment je me sens, ou dis-moi de réparer quelque chose…",
   "chat.send": "Envoyer",
   "chat.thinking": "réflexion…",
+  "chat.scanning": "🔍 Analyse de votre disque…",
   "chat.error": "Un problème est survenu avec le LLM :",
 
   "personality.friendly": "Amical",
@@ -157,6 +159,7 @@ const ar: Dict = {
   "chat.placeholder": "اسألني كيف حالي، أو قل لي أن أصلح شيئًا…",
   "chat.send": "إرسال",
   "chat.thinking": "أفكّر…",
+  "chat.scanning": "🔍 جارٍ فحص القرص…",
   "chat.error": "حدث خطأ أثناء التواصل مع النموذج:",
 
   "personality.friendly": "ودود",
@@ -220,6 +223,7 @@ const ary: Dict = {
   "chat.placeholder": "سولني كيداير حالي، ولا قوليا نصاوب شي حاجة…",
   "chat.send": "صيفط",
   "chat.thinking": "كيخمم…",
+  "chat.scanning": "🔍 كنقلب فالديسك ديالك…",
   "chat.error": "وقع مشكل مع النموذج:",
 
   "personality.friendly": "لطيف",

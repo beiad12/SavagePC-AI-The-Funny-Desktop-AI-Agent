@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import PersonalitySelector from "@/components/PersonalitySelector";
 import MessageContent from "@/components/MessageContent";
-import { sendChatMessage } from "@/lib/bridge";
+import { onScanEvents, sendChatMessage, type ScanProgress } from "@/lib/bridge";
 import { useAppStore, useT } from "@/state/store";
 import type { ChatMessage } from "@/lib/types";
 
@@ -14,12 +14,24 @@ export default function ChatPanel() {
   const language = useAppStore((s) => s.language);
   const [input, setInput] = useState("");
   const [sending, setSending] = useState(false);
+  const [scan, setScan] = useState<ScanProgress | null>(null);
   const bottomRef = useRef<HTMLDivElement>(null);
   const t = useT();
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages]);
+  }, [messages, scan]);
+
+  useEffect(() => {
+    let unsubscribe: (() => void) | undefined;
+    onScanEvents(
+      (p) => setScan(p),
+      () => setScan(null),
+    ).then((fn) => {
+      unsubscribe = fn;
+    });
+    return () => unsubscribe?.();
+  }, []);
 
   const send = async () => {
     const text = input.trim();
@@ -33,6 +45,7 @@ export default function ChatPanel() {
     addMessage(userMsg);
     setInput("");
     setSending(true);
+    setScan(null);
     try {
       const reply = await sendChatMessage([...messages, userMsg], personality, provider, language);
       addMessage(reply);
@@ -45,6 +58,7 @@ export default function ChatPanel() {
       });
     } finally {
       setSending(false);
+      setScan(null);
     }
   };
 
@@ -94,7 +108,23 @@ export default function ChatPanel() {
               </motion.div>
             ))}
           </AnimatePresence>
-          {sending && (
+
+          {sending && scan && (
+            <motion.div
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="glass max-w-[85%] rounded-2xl px-4 py-3 text-sm text-slate-300"
+            >
+              <div className="flex items-center gap-2">
+                <span className="inline-block h-2 w-2 animate-ping rounded-full bg-savage-accent2" />
+                <span className="font-medium">{t("chat.scanning")}</span>
+              </div>
+              <div className="mt-1 truncate font-mono text-[11px] text-slate-500">
+                {scan.scanned.toLocaleString()} · {scan.current_path}
+              </div>
+            </motion.div>
+          )}
+          {sending && !scan && (
             <div className="glass max-w-[60%] rounded-2xl px-4 py-2 text-sm text-slate-400">{t("chat.thinking")}</div>
           )}
           <div ref={bottomRef} />

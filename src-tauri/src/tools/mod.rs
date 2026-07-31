@@ -5,6 +5,7 @@ mod system_info;
 use anyhow::{bail, Result};
 use serde::Serialize;
 use std::collections::HashMap;
+use tauri::AppHandle;
 
 #[derive(Debug, Clone, Serialize)]
 pub struct ToolDefinition {
@@ -36,7 +37,16 @@ pub fn list_tools() -> Vec<ToolDefinition> {
         },
         ToolDefinition {
             name: "analyze_large_folders",
-            description: "Report the largest folders under the user's home directory",
+            description: "Quick report of the largest top-level folders under the user's home directory",
+            category: "maintenance",
+            dangerous: false,
+        },
+        ToolDefinition {
+            name: "find_large_files",
+            description: "Deep scan of the user's home directory for the individual largest files on disk \
+                (not just folders). Slower than analyze_large_folders but gives concrete file paths worth \
+                deleting or moving. Use this for 'find large files' / 'why is my disk full' / 'why is my PC \
+                slow' style questions, alongside the live CPU/RAM telemetry you already have.",
             category: "maintenance",
             dangerous: false,
         },
@@ -60,7 +70,16 @@ pub fn list_tools() -> Vec<ToolDefinition> {
         },
         ToolDefinition {
             name: "launch_application",
-            description: "Launch an application by path or command (requires 'path' arg)",
+            description: "Open ANY path with its OS default handler: an application/.exe, a document, a URL, \
+                or a folder path (e.g. 'C:\\Users\\MEHDI' opens it in File Explorer). This is the tool to call \
+                whenever the user says 'open <path>'.",
+            category: "performance",
+            dangerous: false,
+        },
+        ToolDefinition {
+            name: "close_path",
+            description: "Close any open File Explorer / Finder window that is showing the given folder path. \
+                This is the tool to call whenever the user says 'close <path>' after you opened it.",
             category: "performance",
             dangerous: false,
         },
@@ -106,7 +125,14 @@ pub fn tool_schemas() -> Vec<serde_json::Value> {
                 "launch_application" => serde_json::json!({
                     "type": "object",
                     "properties": {
-                        "path": { "type": "string", "description": "Path or command to launch" }
+                        "path": { "type": "string", "description": "Path, URL, or command to open" }
+                    },
+                    "required": ["path"]
+                }),
+                "close_path" => serde_json::json!({
+                    "type": "object",
+                    "properties": {
+                        "path": { "type": "string", "description": "Folder path whose open window(s) should be closed" }
                     },
                     "required": ["path"]
                 }),
@@ -134,12 +160,13 @@ pub fn tool_schemas() -> Vec<serde_json::Value> {
         .collect()
 }
 
-pub fn run_tool(name: &str, args: &HashMap<String, String>) -> Result<String> {
+pub fn run_tool(name: &str, args: &HashMap<String, String>, app: &AppHandle) -> Result<String> {
     match name {
         "empty_recycle_bin" => maintenance::empty_recycle_bin(),
         "delete_temp_files" => maintenance::delete_temp_files(),
         "clear_browser_cache" => maintenance::clear_browser_cache(),
         "analyze_large_folders" => system_info::analyze_large_folders(),
+        "find_large_files" => system_info::find_large_files(app),
         "open_task_manager" => power::open_task_manager(),
         "open_settings" => power::open_settings(),
         "kill_process" => {
@@ -153,6 +180,12 @@ pub fn run_tool(name: &str, args: &HashMap<String, String>) -> Result<String> {
                 .get("path")
                 .ok_or_else(|| anyhow::anyhow!("missing 'path' argument"))?;
             power::launch_application(path)
+        }
+        "close_path" => {
+            let path = args
+                .get("path")
+                .ok_or_else(|| anyhow::anyhow!("missing 'path' argument"))?;
+            power::close_path(path)
         }
         "restart_pc" => power::restart_pc(),
         "shutdown_pc" => power::shutdown_pc(),

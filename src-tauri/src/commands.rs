@@ -6,7 +6,7 @@ use crate::tools;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::sync::{Arc, Mutex};
-use tauri::State;
+use tauri::{AppHandle, State};
 
 pub struct AppState {
     pub telemetry: Arc<Mutex<TelemetryCollector>>,
@@ -54,11 +54,12 @@ pub fn list_tools() -> Vec<tools::ToolDefinition> {
 
 #[tauri::command]
 pub fn run_tool(
+    app: AppHandle,
     state: State<AppState>,
     name: String,
     args: Option<HashMap<String, String>>,
 ) -> Result<String, String> {
-    let result = tools::run_tool(&name, &args.unwrap_or_default()).map_err(|e| e.to_string())?;
+    let result = tools::run_tool(&name, &args.unwrap_or_default(), &app).map_err(|e| e.to_string())?;
     let _ = state.memory.log_maintenance(&name, &result);
     Ok(result)
 }
@@ -77,6 +78,7 @@ fn parse_tool_arguments(raw: &str) -> HashMap<String, String> {
 /// instead of the model just claiming in text that it did something.
 #[tauri::command]
 pub async fn send_chat_message(
+    app: AppHandle,
     state: State<'_, AppState>,
     history: Vec<ChatMessage>,
     personality: String,
@@ -132,7 +134,7 @@ pub async fn send_chat_message(
 
         for call in outcome.tool_calls {
             let args = parse_tool_arguments(&call.arguments);
-            let result = tools::run_tool(&call.name, &args).unwrap_or_else(|e| format!("Error: {e}"));
+            let result = tools::run_tool(&call.name, &args, &app).unwrap_or_else(|e| format!("Error: {e}"));
             let _ = state.memory.log_maintenance(&call.name, &result);
 
             events.push(ChatEvent::ToolCall {
