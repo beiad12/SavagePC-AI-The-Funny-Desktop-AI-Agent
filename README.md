@@ -1,11 +1,14 @@
 # SavagePC AI 🤖💀
 
+<img width="1920" height="1029" alt="Screenshot 2026-07-31 180027" src="https://github.com/user-attachments/assets/8a86b564-a941-4665-8dd6-42137551ba19" />
+
 SavagePC AI is a next-generation AI desktop assistant that combines real-time system monitoring, intelligent diagnostics, and a unique sarcastic personality to help users keep their PCs healthy and optimized.
 
 Unlike traditional system monitoring tools, SavagePC AI doesn't just display system statistics—it understands them, explains what's happening in natural language, and can perform maintenance tasks with the user's permission.
 
 Whether your SSD is full, your RAM is overloaded, your CPU is overheating, or you've ignored Windows updates for weeks, SavagePC AI will let you know... probably with a roast.
 
+<img width="1920" height="1026" alt="Screenshot 2026-07-31 180109" src="https://github.com/user-attachments/assets/10188ec1-a685-4add-9a40-3658c5d2a35b" />
 ## Features
 
 - 🤖 AI-powered desktop assistant
@@ -26,7 +29,7 @@ Whether your SSD is full, your RAM is overloaded, your CPU is overheating, or yo
 - 🔌 Plugin architecture (planned)
 
 ## Supported AI Providers
-
+<img width="1920" height="1030" alt="Screenshot 2026-07-31 180123" src="https://github.com/user-attachments/assets/9448f4a2-2539-4891-8e72-3f6eded94d70" />
 - OpenAI
 - Mistral AI
 - Google Gemini
